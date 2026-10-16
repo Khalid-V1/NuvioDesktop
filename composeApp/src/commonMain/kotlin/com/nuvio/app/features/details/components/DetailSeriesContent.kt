@@ -36,7 +36,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,6 +78,7 @@ import com.nuvio.app.core.ui.nuvioDesktopDragScroll
 import com.nuvio.app.core.ui.nuvioHorizontalScrollBleed
 import com.nuvio.app.core.ui.posterCardClickable
 import com.nuvio.app.core.ui.secondaryClick
+import com.nuvio.app.core.ui.spoilerTextBlur
 import com.nuvio.app.features.details.MetaDetails
 import com.nuvio.app.isDesktop
 import com.nuvio.app.features.details.EpisodeRatingsVisibility
@@ -110,6 +117,7 @@ fun DetailSeriesContent(
     episodeRatings: Map<Pair<Int, Int>, Double> = emptyMap(),
     episodeRatingsVisibility: EpisodeRatingsVisibility = EpisodeRatingsVisibility.SHOW_ALL,
     blurUnwatchedEpisodes: Boolean = false,
+    blurUnwatchedEpisodeText: Boolean = false,
     onEpisodeClick: ((MetaVideo) -> Unit)? = null,
     onEpisodeLongPress: ((MetaVideo) -> Unit)? = null,
     onSeasonLongPress: ((Int) -> Unit)? = null,
@@ -230,6 +238,7 @@ fun DetailSeriesContent(
                             episodeRatings = episodeRatings,
                             episodeRatingsVisibility = episodeRatingsVisibility,
                             blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                            blurUnwatchedEpisodeText = blurUnwatchedEpisodeText,
                             preferredEpisodeNumber = preferredEpisodeNumberForSeason(
                                 displayedSeasonNumber = seasonForContent,
                                 preferredSeasonNumber = preferredSeasonNumber,
@@ -263,6 +272,7 @@ fun DetailSeriesContent(
                                         ),
                                     episodeRatingsVisibility = episodeRatingsVisibility,
                                     blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                                    blurUnwatchedEpisodeText = blurUnwatchedEpisodeText,
                                     sizing = sizing,
                                     onClick = { onEpisodeClick?.invoke(episode) },
                                     onLongPress = { onEpisodeLongPress?.invoke(episode) },
@@ -322,6 +332,7 @@ internal fun DetailSeriesListEpisode(
     episodeRatings: Map<Pair<Int, Int>, Double>,
     episodeRatingsVisibility: EpisodeRatingsVisibility,
     blurUnwatchedEpisodes: Boolean,
+    blurUnwatchedEpisodeText: Boolean = false,
     onEpisodeClick: ((MetaVideo) -> Unit)?,
     onEpisodeLongPress: ((MetaVideo) -> Unit)?,
     modifier: Modifier = Modifier,
@@ -348,6 +359,7 @@ internal fun DetailSeriesListEpisode(
                 ),
             episodeRatingsVisibility = episodeRatingsVisibility,
             blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+            blurUnwatchedEpisodeText = blurUnwatchedEpisodeText,
             sizing = sizing,
             onClick = { onEpisodeClick?.invoke(episode) },
             onLongPress = { onEpisodeLongPress?.invoke(episode) },
@@ -718,6 +730,7 @@ private fun EpisodeHorizontalRow(
     episodeRatings: Map<Pair<Int, Int>, Double>,
     episodeRatingsVisibility: EpisodeRatingsVisibility,
     blurUnwatchedEpisodes: Boolean,
+    blurUnwatchedEpisodeText: Boolean = false,
     preferredEpisodeNumber: Int? = null,
     onEpisodeClick: ((MetaVideo) -> Unit)?,
     onEpisodeLongPress: ((MetaVideo) -> Unit)?,
@@ -778,6 +791,7 @@ private fun EpisodeHorizontalRow(
                     ),
                 episodeRatingsVisibility = episodeRatingsVisibility,
                 blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                blurUnwatchedEpisodeText = blurUnwatchedEpisodeText,
                 metrics = rowMetrics,
                 onClick = { onEpisodeClick?.invoke(episode) },
                 onLongPress = { onEpisodeLongPress?.invoke(episode) },
@@ -796,10 +810,15 @@ private fun EpisodeHorizontalCard(
     isWatched: Boolean,
     episodeRatingsVisibility: EpisodeRatingsVisibility,
     blurUnwatchedEpisodes: Boolean,
+    blurUnwatchedEpisodeText: Boolean = false,
     metrics: EpisodeHorizontalCardMetrics,
     onClick: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
 ) {
+    var textRevealed by remember(video.id, blurUnwatchedEpisodeText, isWatched) { mutableStateOf(false) }
+    val protectText = blurUnwatchedEpisodeText && !isWatched
+    val shouldBlurText = protectText && !textRevealed
+
     val cardShape = RoundedCornerShape(metrics.cornerRadius)
     val ratingLabel = remember(imdbRating, episodeRatingsVisibility, isWatched) {
         imdbRating?.takeIf { it > 0.0 && episodeRatingsVisibility.showRating(isWatched) }
@@ -839,7 +858,7 @@ private fun EpisodeHorizontalCard(
         if (imageUrl != null) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = video.title,
+                contentDescription = if (shouldBlurText) null else video.title,
                 modifier = Modifier
                     .fillMaxSize()
                     .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier),
@@ -861,6 +880,14 @@ private fun EpisodeHorizontalCard(
                     ),
                 ),
         )
+
+        if (protectText) {
+            EpisodeTextBlurToggle(
+                revealed = textRevealed,
+                onClick = { textRevealed = !textRevealed },
+                modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+            )
+        }
 
         NuvioAnimatedWatchedBadge(
             isVisible = isWatched,
@@ -892,6 +919,7 @@ private fun EpisodeHorizontalCard(
 
             Text(
                 text = video.title,
+                modifier = Modifier.spoilerTextBlur(shouldBlurText),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontSize = metrics.titleTextSize,
                     fontWeight = FontWeight.ExtraBold,
@@ -905,6 +933,7 @@ private fun EpisodeHorizontalCard(
             if (!video.overview.isNullOrBlank()) {
                 Text(
                     text = video.overview,
+                    modifier = Modifier.spoilerTextBlur(shouldBlurText),
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = metrics.bodyTextSize,
                         lineHeight = metrics.bodyLineHeight,
@@ -1182,11 +1211,16 @@ private fun EpisodeListCard(
     isWatched: Boolean,
     episodeRatingsVisibility: EpisodeRatingsVisibility,
     blurUnwatchedEpisodes: Boolean,
+    blurUnwatchedEpisodeText: Boolean = false,
     sizing: SeriesContentSizing,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     onLongPress: (() -> Unit)? = null,
 ) {
+    var textRevealed by remember(video.id, blurUnwatchedEpisodeText, isWatched) { mutableStateOf(false) }
+    val protectText = blurUnwatchedEpisodeText && !isWatched
+    val shouldBlurText = protectText && !textRevealed
+
     val cornerRadius = rememberPosterCardStyleUiState().cornerRadiusDp.dp
     val cardShape = RoundedCornerShape(cornerRadius)
     val ratingLabel = remember(imdbRating, episodeRatingsVisibility, isWatched) {
@@ -1227,7 +1261,7 @@ private fun EpisodeListCard(
                 if (imageUrl != null) {
                     AsyncImage(
                         model = imageUrl,
-                        contentDescription = video.title,
+                        contentDescription = if (shouldBlurText) null else video.title,
                         modifier = Modifier
                             .fillMaxSize()
                             .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier),
@@ -1253,6 +1287,14 @@ private fun EpisodeListCard(
                         .padding(start = 8.dp, top = 8.dp),
                 )
 
+                if (protectText) {
+                    EpisodeTextBlurToggle(
+                        revealed = textRevealed,
+                        onClick = { textRevealed = !textRevealed },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                    )
+                }
+
                 NuvioAnimatedWatchedBadge(
                     isVisible = isWatched,
                     modifier = Modifier
@@ -1275,6 +1317,7 @@ private fun EpisodeListCard(
             ) {
                 Text(
                     text = video.title,
+                    modifier = Modifier.spoilerTextBlur(shouldBlurText),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontSize = sizing.titleTextSize,
                         fontWeight = FontWeight.Bold,
@@ -1317,6 +1360,7 @@ private fun EpisodeListCard(
                 if (!video.overview.isNullOrBlank()) {
                     Text(
                         text = video.overview,
+                        modifier = Modifier.spoilerTextBlur(shouldBlurText),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = sizing.bodyTextSize,
                             lineHeight = sizing.bodyLineHeight,
@@ -1343,6 +1387,29 @@ private fun EpisodeListCard(
                     fillColor = MaterialTheme.colorScheme.primary,
                 )
             }
+    }
+}
+
+@Composable
+private fun EpisodeTextBlurToggle(
+    revealed: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(40.dp)
+            .background(Color.Black.copy(alpha = 0.65f), CircleShape),
+    ) {
+        Icon(
+            imageVector = if (revealed) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+            contentDescription = stringResource(
+                if (revealed) Res.string.episode_blur_text else Res.string.episode_reveal_text,
+            ),
+            tint = Color.White,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

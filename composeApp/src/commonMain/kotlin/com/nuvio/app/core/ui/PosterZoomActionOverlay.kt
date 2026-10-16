@@ -171,6 +171,7 @@ fun NuvioPosterZoomActionOverlay(
     hazeState: HazeState,
     onDismissed: () -> Unit,
     modifier: Modifier = Modifier,
+    titleBlurred: Boolean = false,
 ) {
     val tokens = MaterialTheme.nuvio
     val previewShape = RoundedCornerShape(PosterZoomFinalCornerRadius)
@@ -178,6 +179,7 @@ fun NuvioPosterZoomActionOverlay(
     val scope = rememberCoroutineScope()
     val source = remember(anchor) { anchor?.source }
     val currentOnDismissed by rememberUpdatedState(onDismissed)
+    val titleProtection = Modifier.spoilerTextBlur(titleBlurred)
 
     // A context menu shows a snapshot of the moment it was invoked; don't let
     // repository updates mid-animation relabel or reorder the rows.
@@ -330,7 +332,7 @@ fun NuvioPosterZoomActionOverlay(
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = NuvioTokens.Space.s12),
+                    modifier = Modifier.padding(horizontal = NuvioTokens.Space.s12).then(titleProtection),
                 )
                 if (!subtitle.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(NuvioTokens.Space.s4))
@@ -473,7 +475,7 @@ fun NuvioPosterZoomActionOverlay(
                         if (imageUrl != null) {
                             AsyncImage(
                                 model = imageUrl,
-                                contentDescription = title,
+                                contentDescription = if (titleBlurred) null else title,
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .then(if (blurred) Modifier.blur(NuvioTokens.Space.s18) else Modifier),
@@ -482,7 +484,7 @@ fun NuvioPosterZoomActionOverlay(
                         } else {
                             Text(
                                 text = title,
-                                modifier = Modifier.padding(NuvioTokens.Space.s14),
+                                modifier = Modifier.padding(NuvioTokens.Space.s14).then(titleProtection),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = tokens.colors.textMuted,
                                 textAlign = TextAlign.Center,

@@ -1021,6 +1021,10 @@
     <string name="settings_meta_episodes_description">Seasons and episode list for series.</string>
     <string name="settings_meta_blur_unwatched_episodes">Blur Unwatched Episodes</string>
     <string name="settings_meta_blur_unwatched_episodes_description">Blur episode thumbnails until watched to avoid spoilers.</string>
+    <string name="settings_meta_blur_unwatched_episode_text">Blur episode titles and descriptions</string>
+    <string name="settings_meta_blur_unwatched_episode_text_description">Blur titles and descriptions of unwatched episodes to avoid spoilers. Reveal text using the eye button on each episode card.</string>
+    <string name="episode_reveal_text">Reveal episode title and description</string>
+    <string name="episode_blur_text">Blur episode title and description</string>
     <string name="settings_meta_group_label">Group %1$d</string>
     <string name="settings_meta_more_like_this">More like this</string>
     <string name="settings_meta_more_like_this_description">TMDB recommendation backdrops on detail page</string>

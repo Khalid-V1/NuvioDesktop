@@ -1717,6 +1717,7 @@ fun MetaDetailsScreen(
                                     stringResource(Res.string.episodes_season, it)
                                 } ?: stringResource(Res.string.episodes_specials),
                                 isEpisodeWatched = isSelectedEpisodeWatched,
+                                blurUnwatchedEpisodeText = metaScreenSettingsUiState.blurUnwatchedEpisodeText,
                                 canMarkPreviousEpisodes = previousEpisodes.isNotEmpty(),
                                 arePreviousEpisodesWatched = arePreviousEpisodesWatched,
                                 isSeasonWatched = isSeasonWatched,
@@ -2016,6 +2017,7 @@ fun MetaDetailsScreen(
                 subtitle = localizedSeasonEpisodeCode(selectedEpisode.season, selectedEpisode.episode) ?: seasonLabel,
                 isWatched = isSelectedEpisodeWatched,
                 blurred = metaScreenSettingsUiState.blurUnwatchedEpisodes && !isSelectedEpisodeWatched,
+                titleBlurred = metaScreenSettingsUiState.blurUnwatchedEpisodeText && !isSelectedEpisodeWatched,
                 depthSurface = NuvioCardDepthSurface.EpisodeCards,
                 anchor = zoomAnchor,
                 actions = buildList {
@@ -2385,6 +2387,7 @@ private fun LazyListScope.configuredMetaSectionItems(
                     episodeRatings = episodeImdbRatings,
                     episodeRatingsVisibility = settings.episodeRatingsVisibility,
                     blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                    blurUnwatchedEpisodeText = settings.blurUnwatchedEpisodeText,
                     onEpisodeClick = onEpisodeClick,
                     onEpisodeLongPress = onEpisodeLongPress,
                 )
@@ -2665,6 +2668,7 @@ private fun ConfiguredMetaSections(
                         episodeRatings = episodeImdbRatings,
                         episodeRatingsVisibility = settings.episodeRatingsVisibility,
                         blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                        blurUnwatchedEpisodeText = settings.blurUnwatchedEpisodeText,
                         onEpisodeClick = onEpisodeClick,
                         onEpisodeLongPress = onEpisodeLongPress,
                         onSeasonLongPress = onSeasonLongPress,

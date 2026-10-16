@@ -24,6 +24,7 @@ import com.nuvio.app.core.ui.NuvioBottomSheetDivider
 import com.nuvio.app.core.ui.NuvioModalBottomSheet
 import com.nuvio.app.core.ui.dismissNuvioBottomSheet
 import com.nuvio.app.core.ui.nuvioSafeBottomPadding
+import com.nuvio.app.core.ui.spoilerTextBlur
 import com.nuvio.app.core.i18n.localizedSeasonEpisodeCode
 import com.nuvio.app.features.details.MetaVideo
 import kotlinx.coroutines.launch
@@ -45,6 +46,7 @@ fun EpisodeWatchedActionSheet(
     onToggleSeasonWatched: () -> Unit,
     showPlayManually: Boolean = false,
     onPlayManually: (() -> Unit)? = null,
+    blurUnwatchedEpisodeText: Boolean = false,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
@@ -65,6 +67,7 @@ fun EpisodeWatchedActionSheet(
             EpisodeActionSheetHeader(
                 episode = episode,
                 seasonLabel = seasonLabel,
+                blurTitle = blurUnwatchedEpisodeText && !isEpisodeWatched,
             )
             NuvioBottomSheetDivider()
             NuvioBottomSheetActionRow(
@@ -197,6 +200,7 @@ fun SeasonWatchedActionSheet(
 private fun EpisodeActionSheetHeader(
     episode: MetaVideo,
     seasonLabel: String,
+    blurTitle: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -206,6 +210,7 @@ private fun EpisodeActionSheetHeader(
     ) {
         Text(
             text = episode.title,
+            modifier = Modifier.spoilerTextBlur(blurTitle),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold,
