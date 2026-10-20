@@ -16,7 +16,7 @@ private val SpoilerTextBlurShape = RoundedCornerShape(8.dp)
 fun Modifier.spoilerTextBlur(blurred: Boolean): Modifier =
     if (blurred) {
         blur(
-            radius = 8.dp,
+            radius = 18.dp,
             edgeTreatment = BlurredEdgeTreatment(SpoilerTextBlurShape),
         ).clearAndSetSemantics { }
     } else {
